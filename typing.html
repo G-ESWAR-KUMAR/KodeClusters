@@ -1,0 +1,967 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Typing Practice - KodeCluster</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    .typing-container { 
+      max-width:1200px; 
+      margin:0 auto; 
+      padding:28px; 
+      z-index:10; 
+      position:relative; 
+    }
+    
+    .topbar { 
+      display:flex; 
+      justify-content:space-between; 
+      align-items:center; 
+      gap:12px;
+      margin-bottom:30px;
+      flex-wrap: wrap;
+    }
+    
+    .topbar h1 {
+      background: linear-gradient(90deg,var(--primary),var(--secondary));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      font-size: 2rem;
+      font-weight: 700;
+    }
+    
+    .topbar p {
+      font-size: 0.95rem;
+      color: rgba(255,255,255,0.7);
+    }
+    
+    .controls { 
+      display:flex; 
+      gap:16px; 
+      align-items:flex-start; 
+      flex-wrap:wrap;
+      margin-bottom: 20px;
+      padding: 20px;
+      background: var(--glass);
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,0.06);
+    }
+    
+    .controls > div {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    
+    .controls label {
+      font-size: 0.85rem;
+      color: rgba(255,255,255,0.7);
+      font-weight: 600;
+    }
+    
+    .controls > div:last-child {
+      margin-left: auto;
+      flex-direction: row;
+      align-items: flex-end;
+    }
+    
+    .mode-btn { 
+      padding:10px 16px; 
+      border-radius:8px; 
+      border:1px solid rgba(255,255,255,0.1); 
+      background:transparent; 
+      color:rgba(255,255,255,0.8); 
+      cursor:pointer;
+      transition: all 0.2s ease;
+      font-weight: 500;
+    }
+    
+    .mode-btn:hover {
+      border-color: var(--primary);
+    }
+    
+    .mode-btn.active { 
+      background:linear-gradient(90deg,var(--primary),var(--secondary)); 
+      color:#000;
+      border-color: var(--primary);
+      box-shadow: 0 0 15px rgba(0,255,136,0.2);
+    }
+    
+    .sample-box { 
+      background:rgba(255,255,255,0.02); 
+      padding:24px; 
+      border-radius:12px; 
+      border:1px solid rgba(255,255,255,0.08); 
+      min-height:120px;
+      line-height: 1.8;
+      font-size: 1.1rem;
+      /* show only first two lines as preview while keeping full text in DOM for highlighting */
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    /* Expanded full paragraph */
+    .sample-box.expanded {
+      display: block;
+      -webkit-line-clamp: unset;
+      -webkit-box-orient: unset;
+      overflow: visible;
+      white-space: normal;
+    }
+    
+    .sample-word { 
+      padding:4px 6px; 
+      border-radius:4px;
+      transition: all 0.1s ease;
+    }
+    
+    .sample-word.current { 
+      background:rgba(0,255,136,0.2);
+      box-shadow: 0 0 10px rgba(0,255,136,0.3);
+      color: var(--primary);
+    }
+    
+    .sample-word.correct { 
+      color: #7bdd9f;
+      font-weight: 500;
+    }
+    
+    .sample-word.wrong { 
+      color: #ff7b7b; 
+      text-decoration: underline wavy;
+    }
+    
+    .stats-grid { 
+      display:grid; 
+      grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); 
+      gap:16px;
+    }
+    
+    .stat { 
+      padding:20px; 
+      border-radius:12px; 
+      background:var(--glass); 
+      border:1px solid rgba(255,255,255,0.08); 
+      text-align:center;
+      transition: all 0.2s ease;
+    }
+    
+    .stat:hover {
+      border-color: rgba(255,255,255,0.15);
+      background: rgba(255,255,255,0.07);
+    }
+    
+    .stat .label {
+      font-size: 0.85rem;
+      color: rgba(255,255,255,0.6);
+      margin-bottom: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    
+    .stat .num { 
+      font-size:1.8rem; 
+      font-weight:700; 
+      background: linear-gradient(90deg,var(--primary),var(--secondary)); 
+      -webkit-background-clip:text; 
+      -webkit-text-fill-color:transparent;
+    }
+    
+    .typing-input { 
+      width:100%; 
+      padding:14px 16px; 
+      border-radius:10px; 
+      border:1px solid rgba(255,255,255,0.08); 
+      background: rgba(255,255,255,0.02); 
+      color:white;
+      font-family: 'Space Grotesk', monospace;
+      font-size: 1rem;
+      transition: all 0.2s ease;
+    }
+    
+    .typing-input:focus {
+      outline: none;
+      border-color: var(--primary);
+      background: rgba(255,255,255,0.04);
+      box-shadow: 0 0 15px rgba(0,255,136,0.1);
+    }
+    
+    .typing-input:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    
+    /* Responsive & child-friendly adjustments */
+    .action-button { min-height:40px; }
+    .basics-act { padding:12px 16px; font-size:1rem; }
+    
+    /* Keyboard visual */
+    .kbd { display:flex; gap:8px; align-items:center; justify-content:center; flex-wrap:wrap; margin-top:12px; }
+    .kbd-key { width:56px; height:56px; border-radius:8px; background:rgba(255,255,255,0.03); display:flex; align-items:center; justify-content:center; font-weight:700; color:var(--primary); border:1px solid rgba(255,255,255,0.06); cursor:pointer; box-shadow:0 6px 18px rgba(0,0,0,0.4); }
+    .kbd-key.large { width:70px; height:70px; font-size:1.2rem; }
+    .kbd-key.active { background: linear-gradient(90deg,var(--primary),var(--secondary)); color:#001; transform:translateY(-4px); box-shadow:0 18px 30px rgba(0,0,0,0.45); }
+    .finger-labels { display:flex; gap:8px; margin-top:10px; justify-content:center; flex-wrap:wrap; }
+    .finger-card { padding:8px 10px; border-radius:8px; background:rgba(255,255,255,0.02); color:rgba(255,255,255,0.9); border:1px solid rgba(255,255,255,0.04); font-size:0.9rem; }
+
+    @media (max-width: 800px) {
+      .typing-container { padding:16px; }
+      .controls { padding:12px; }
+      .kbd-key { width:48px; height:48px; }
+      .kbd-key.large { width:58px; height:58px; }
+      .sample-box { -webkit-line-clamp: 3; }
+      .stats-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+  </style>
+</head>
+<body>
+  <canvas id="constellation"></canvas>
+  <div id="themeOrb" title="Change Atmosphere"></div>
+
+  <div class="typing-container">
+    <div class="topbar">
+      <div>
+        <h1>Typing Practice</h1>
+        <p>Sharpen your typing with modes and levels</p>
+      </div>
+
+      <div style="display:flex; align-items:center; gap:12px; position:relative;">
+        <button class="action-button" style="margin-right:8px; padding:8px 12px; font-size:0.9rem;" onclick="location.href='dashboard.html'">← Back</button>
+      
+      <div style="display:flex; align-items:center; gap:15px; position:relative;">
+        <div class="user-avatar" style="width:40px; height:40px;">A</div>
+        <div style="text-align:right;">
+          <div style="font-weight:600; color:white;">Alex Johnson</div>
+          <div style="font-size:12px; color:rgba(255,255,255,0.7);">alex.j@kodecluster.com</div>
+        </div>
+
+        <div style="margin-left:8px; position:relative;">
+          <button id="settingsBtnTop" class="settings-button" title="Settings"><i class="fas fa-gear"></i></button>
+          <div id="settingsDropdownTop" class="settings-dropdown">
+            <div class="settings-item" onclick="location.href='#change-password'"><i class="fas fa-key"></i>Change password</div>
+            <div class="settings-item" onclick="location.href='dashboard.html'"><i class="fas fa-home"></i>Back to Dashboard</div>
+            <div class="settings-item" onclick="location.href='index.html'"><i class="fas fa-sign-out-alt"></i>Logout</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+<!-- Basics Section -->
+      <div id="basicsSection" style="display:none; margin-bottom:30px; padding:18px; background:var(--glass); border-radius:12px; border:1px solid rgba(255,255,255,0.06);">
+        <div style="display:flex; justify-content:space-between; align-items:center; gap:12px; margin-bottom:12px;">
+          <div>
+            <h2 style="font-size:1.2rem; font-weight:600; margin:0; color:white;">Typing Basics & Mini Activities</h2>
+            <div style="font-size:0.85rem; color:rgba(255,255,255,0.7);">Small drills and games to build finger awareness and speed</div>
+          </div>
+          <div style="display:flex; gap:8px; align-items:center;">
+            <button id="backToPracticeBtn" class="action-button" style="padding:8px 12px; font-size:0.9rem;">Back to Practice</button>
+          </div>
+        </div>
+
+        <div style="display:grid; grid-template-columns:1fr 360px; gap:16px; align-items:start;">
+          <div>
+            <div style="display:flex; gap:8px; margin-bottom:12px;">
+              <button class="action-button basics-act" data-act="home">Home Row Drill</button>
+              <button class="action-button basics-act" data-act="warmup">Finger Warmup</button>
+              <button class="action-button basics-act" data-act="sprint">15s Sprint</button>
+            </div>
+
+            <div id="activityArea" style="background:rgba(0,0,0,0.02); padding:14px; border-radius:10px; border:1px solid rgba(255,255,255,0.04); min-height:120px;">
+              <div id="activityDesc" style="color:rgba(255,255,255,0.85); margin-bottom:8px;">Choose an activity to begin. These short drills help train proper finger use.</div>
+              <div id="activityUI"></div>
+
+              <!-- Keyboard visual for finger placement (home row) -->
+              <div style="margin-top:12px; text-align:center;">
+                <div style="color:rgba(255,255,255,0.8); font-weight:600; margin-bottom:6px;">Place your fingers like this (big buttons for little hands)</div>
+                <div id="kbdVisual"></div>
+                <div style="display:flex;gap:8px;justify-content:center;margin-top:8px;" id="stepControls">
+                  <button class="action-button step-btn active" data-step="1">Step 1</button>
+                  <button class="action-button step-btn" data-step="2">Step 2</button>
+                  <button class="action-button step-btn" data-step="3">Step 3</button>
+                </div>
+
+                <div class="finger-labels" id="fingerLabels">
+                  <div class="finger-card" id="labelPinky">Pinky: Reach small keys</div>
+                  <div class="finger-card" id="labelRing">Ring: Help with nearby keys</div>
+                  <div class="finger-card" id="labelMiddle">Middle: Press middle keys</div>
+                  <div class="finger-card" id="labelIndex">Index: Main workhorse finger</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div style="background:rgba(255,255,255,0.02); padding:12px; border-radius:10px; border:1px solid rgba(255,255,255,0.04);">
+            <h4 style="margin:0 0 8px 0; color:white;">Quick Tips</h4>
+            <ul style="color:rgba(255,255,255,0.8); font-size:0.9rem; margin-left:16px;">
+              <li>Keep fingers on home row</li>
+              <li>Relax wrists — use fingers to reach keys</li>
+              <li>Start slow; aim for accuracy</li>
+              <li>Use these drills 5–10 minutes daily</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div id="practiceArea" style="margin-top:20px;display:grid;grid-template-columns:2fr 1fr;gap:20px;">
+      <!-- Left: practice area -->
+      <div>
+        <div class="controls mb-4">
+          <div>
+            <label class="text-xs text-gray-400">Mode</label>
+            <div style="display:flex;gap:8px;margin-top:6px; flex-wrap:wrap;">
+              <button class="mode-btn active" data-mode="time">Timed (60s)</button>
+              <button class="mode-btn" data-mode="words">Words (50)</button>
+              <button class="mode-btn" data-mode="practice">Practice</button>
+              <button class="mode-btn" data-mode="basics">Basics & Tips</button>
+            </div>
+          </div>
+
+          <div>
+            <label class="text-xs text-gray-400">Level</label>
+            <div style="display:flex;gap:8px;margin-top:6px;">
+              <button class="mode-btn" data-level="easy">Easy</button>
+              <button class="mode-btn active" data-level="medium">Medium</button>
+              <button class="mode-btn" data-level="hard">Hard</button>
+            </div>
+          </div>
+
+          <div style="margin-left:auto; display:flex; gap:8px; align-items:center;">
+            <button id="showFullBtn" class="action-button" style="border-color:rgba(255,255,255,0.12); color:rgba(255,255,255,0.9); background:transparent;" title="Show full paragraph">Show full</button>
+            <button id="nextSampleBtn" class="action-button" style="border-color:var(--secondary); color:var(--secondary);" title="Next Sample">Next</button>
+            <button id="startBtn" class="action-button">Start</button>
+            <button id="resetBtn" class="action-button" style="border-color:rgba(255,255,255,0.2); color:rgba(255,255,255,0.8);">Reset</button>
+          </div>
+        </div>
+
+        <div class="sample-box mb-4" id="sampleBox"></div>
+
+        <input id="typingInput" class="typing-input" placeholder="Start typing here..." disabled />
+      </div>
+
+      <!-- Right: analysis -->
+      <aside>
+        <div class="stats-grid mb-4">
+          <div class="stat"><div class="label">WPM</div><div class="num" id="wpm">0</div></div>
+          <div class="stat"><div class="label">Accuracy</div><div class="num" id="accuracy">100%</div></div>
+          <div class="stat"><div class="label">Errors</div><div class="num" id="errors">0</div></div>
+          <div class="stat"><div class="label">Time</div><div class="num" id="time">0s</div></div>
+        </div>
+
+        <div class="stats-section mb-4">
+          <h3 class="stats-title">Detailed Analysis</h3>
+          <div class="text-sm text-gray-300">
+            <p>Characters typed: <span id="chars">0</span></p>
+            <p>Words typed: <span id="words">0</span></p>
+            <p>Accuracy detail: <span id="accDetail">100%</span></p>
+          </div>
+        </div>
+
+        <div class="stats-section">
+          <h3 class="stats-title">Quick Actions</h3>
+          <div style="display:flex;flex-direction:column;gap:8px;margin-top:8px;">
+            <button class="action-button" onclick="location.href='dashboard.html'">Back to Dashboard</button>
+            <button class="action-button" onclick="location.href='index.html'">Logout</button>
+          </div>
+        </div>
+      </aside>
+    </div>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+  <script src="script.js"></script>
+  <script>
+    // Typing test logic (page-specific)
+    (function(){
+      const sampleBox = document.getElementById('sampleBox');
+      const input = document.getElementById('typingInput');
+      const startBtn = document.getElementById('startBtn');
+      const resetBtn = document.getElementById('resetBtn');
+      const wpmEl = document.getElementById('wpm');
+      const accuracyEl = document.getElementById('accuracy');
+      const errorsEl = document.getElementById('errors');
+      const timeEl = document.getElementById('time');
+      const charsEl = document.getElementById('chars');
+      const wordsEl = document.getElementById('words');
+      const accDetail = document.getElementById('accDetail');
+
+      let mode = 'time';
+      let level = 'medium';
+      let timer = null;
+      let duration = 60; // seconds for timed
+      let remaining = duration;
+      let started = false;
+      let cursor = 0;
+      let text = '';
+      let totalChars = 0;
+      let correctChars = 0;
+      let wrongChars = 0;
+      let currentSampleIndex = 0;
+
+      const samples = {
+        easy: [
+          'the quick brown fox jumps over the lazy dog',
+          'hello world welcome to kodeclusters',
+          'practice makes perfect with consistency',
+          'learning typing improves your productivity',
+          'start with basics and build your speed',
+          'keep your fingers on the home row position',
+          'never look at the keyboard while typing',
+          'take breaks to avoid strain and fatigue',
+          'focus on accuracy before speed matters',
+          'patience and practice lead to mastery',
+          'the sun shines bright in the morning sky',
+          'beautiful gardens bloom with colorful flowers',
+          'coffee tastes best early in the morning',
+          'coding is like writing in a special language',
+          'music helps many people relax and focus',
+          'reading books expands your imagination daily',
+          'travel opens your mind to new cultures',
+          'friends make life more enjoyable and fun',
+          'exercise keeps your body healthy and strong',
+          'cooking is a creative and useful skill',
+          'technology changes the world every day',
+          'nature provides beauty and peace around us',
+          'animals deserve kindness and protection',
+          'learning new skills takes time and effort',
+          'dreams can come true with hard work',
+          'success comes from dedication and passion',
+          'family is the most important thing in life',
+          'happiness grows from simple daily moments',
+          'laughter is the best medicine for stress',
+          'growth happens outside your comfort zone',
+          'every mistake teaches you something valuable',
+          'confidence builds through practice and experience'
+        ],
+        medium: [
+          'practice makes progress every day keep coding and learning',
+          'build small projects and iterate quickly to improve skills',
+          'consistent practice develops muscle memory for typing',
+          'understanding keyboard layout helps improve typing speed',
+          'efficient typists focus on accuracy before increasing speed',
+          'proper posture prevents injuries and increases productivity',
+          'touch typing is faster than hunt and peck method',
+          'language patterns help predict common word combinations',
+          'regular breaks prevent fatigue and maintain performance',
+          'typing practice sessions should be fifteen to thirty minutes',
+          'advanced programmers type thousands of words per minute',
+          'keyboard shortcuts reduce reliance on mouse movement',
+          'cloud computing transforms how we store and access data',
+          'artificial intelligence is changing many industries today',
+          'renewable energy sources are crucial for sustainability',
+          'cybersecurity protects our digital information daily',
+          'remote work requires excellent communication skills',
+          'data analysis reveals patterns in large information sets',
+          'web design combines creativity with technical expertise',
+          'mobile applications connect billions of people worldwide',
+          'version control systems manage code efficiently together',
+          'debugging code requires patience and logical thinking',
+          'database management stores information securely online',
+          'user experience design makes software enjoyable',
+          'network administration manages computer systems',
+          'cloud storage provides access from anywhere anytime',
+          'digital marketing reaches customers through online channels',
+          'software testing ensures quality and reliability',
+          'project management coordinates team efforts effectively',
+          'continuous integration improves development workflows',
+          'scalable architecture handles growth in user demand',
+          'open source communities drive innovation forward'
+        ],
+        hard: [
+          'synthesizing complex concepts requires focus and deliberate practice',
+          'optimize for clarity readability and maintainability in your code',
+          'understanding algorithms and data structures improves problem solving',
+          'parallel processing accelerates computation through distributed systems',
+          'cryptographic protocols secure communications across insecure networks',
+          'machine learning algorithms discover patterns in massive datasets',
+          'blockchain technology enables decentralized trust mechanisms',
+          'quantum computing promises revolutionary advances in computation',
+          'microservices architecture improves scalability and maintenance',
+          'containerization isolates applications for consistent deployment',
+          'asynchronous programming enables responsive user experiences',
+          'polymorphism allows code flexibility and extensibility',
+          'architectural patterns solve recurring design problems effectively',
+          'performance optimization requires profiling and benchmarking',
+          'memory management prevents leaks and improves efficiency',
+          'concurrency control ensures data consistency in systems',
+          'semantic versioning communicates changes clearly',
+          'dependency injection reduces coupling between components',
+          'abstraction hides complexity while exposing essential features',
+          'refactoring improves code quality without changing behavior',
+          'documentation captures knowledge for future maintainers',
+          'testing strategies validate correctness at multiple levels',
+          'code review processes catch errors before deployment',
+          'configuration management handles environment differences',
+          'monitoring systems detect issues before users notice',
+          'load balancing distributes traffic across multiple servers',
+          'redundancy provides fault tolerance and reliability',
+          'clustering combines resources for increased capacity',
+          'virtualization optimizes resource utilization',
+          'containerized workflows standardize deployment processes',
+          'infrastructure as code manages systems declaratively',
+          'continuous deployment automates reliable software delivery'
+        ]
+      };
+
+      function pickText() {
+        const pool = samples[level] || samples.medium;
+        // ensure sample index is valid
+        if (currentSampleIndex >= pool.length) currentSampleIndex = 0;
+        // for 'words' mode return a longer repeated sequence
+        if (mode === 'words') {
+          return (pool.join(' ') + ' ').repeat(2).trim();
+        }
+        return pool[currentSampleIndex] || pool[0];
+      }
+
+      function nextSample() {
+        const pool = samples[level] || samples.medium;
+        currentSampleIndex = (currentSampleIndex + 1) % pool.length;
+        text = pickText();
+        renderSample();
+        if (!started) {
+          resetTest();
+        }
+      }
+
+      function renderSample() {
+        sampleBox.innerHTML = '';
+        const words = text.split(' ');
+        words.forEach((w, i) => {
+          const span = document.createElement('span');
+          span.className = 'sample-word';
+          span.textContent = w + (i < words.length-1 ? ' ' : '');
+          if (i === 0) span.classList.add('current');
+          sampleBox.appendChild(span);
+        });
+      }
+
+      function resetTest() {
+        clearInterval(timer);
+        remaining = duration;
+        started = false;
+        cursor = 0;
+        totalChars = correctChars = wrongChars = 0;
+        input.value = '';
+        wpmEl.textContent = '0';
+        accuracyEl.textContent = '100%';
+        errorsEl.textContent = '0';
+        timeEl.textContent = duration + 's';
+        charsEl.textContent = '0';
+        wordsEl.textContent = '0';
+        accDetail.textContent = '100%';
+        input.disabled = true;
+        // set text
+        text = pickText();
+        renderSample();
+      }
+
+      function updateStats() {
+        const minutes = (duration - remaining) / 60 || 1/60;
+        const wpm = Math.round((correctChars/5) / minutes) || 0;
+        const accuracy = totalChars ? Math.round((correctChars/totalChars)*100) : 100;
+        wpmEl.textContent = wpm;
+        accuracyEl.textContent = accuracy + '%';
+        errorsEl.textContent = wrongChars;
+        timeEl.textContent = (duration - remaining) + 's';
+        charsEl.textContent = totalChars;
+        wordsEl.textContent = Math.max(0, input.value.trim().split(/\s+/).filter(Boolean).length);
+        accDetail.textContent = accuracy + '%';
+      }
+
+      function tick() {
+        if (mode === 'time') {
+          remaining--;
+          if (remaining <= 0) {
+            clearInterval(timer);
+            input.disabled = true;
+            return;
+          }
+        }
+        updateStats();
+      }
+
+      // handlers
+      document.querySelectorAll('.mode-btn[data-mode]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('.mode-btn[data-mode]').forEach(b=>b.classList.remove('active'));
+          btn.classList.add('active');
+          mode = btn.getAttribute('data-mode');
+          // reset or load saved sample index when changing mode (except basics which shows tutorial)
+          if (mode === 'basics') {
+            // basics mode doesn't use samples
+            currentSampleIndex = 0;
+          } else {
+            // load saved index for this mode+level
+            currentSampleIndex = loadSampleIndex();
+          }
+          // Toggle basics section visibility
+          const basicsSection = document.getElementById('basicsSection');
+          const practiceArea = document.getElementById('practiceArea');
+          
+          if (mode === 'basics') {
+            if (basicsSection) basicsSection.style.display = 'block';
+            // ensure keyboard visual matches current step
+            try { renderKbdVisual(basicsStep); } catch(e){}
+            if (practiceArea) practiceArea.style.display = 'none';
+          } else {
+            if (basicsSection) basicsSection.style.display = 'none';
+            if (practiceArea) practiceArea.style.display = 'grid';
+            resetTest();
+          }
+        });
+      });
+      document.querySelectorAll('.mode-btn[data-level]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('.mode-btn[data-level]').forEach(b=>b.classList.remove('active'));
+          btn.classList.add('active');
+          level = btn.getAttribute('data-level');
+          // load saved index for new level
+          currentSampleIndex = loadSampleIndex();
+          resetTest();
+        });
+      });
+
+      startBtn.addEventListener('click', () => {
+        if (started) return;
+        started = true;
+        input.disabled = false;
+        input.focus();
+        if (mode === 'time') {
+          remaining = duration;
+          timer = setInterval(tick,1000);
+        }
+        // pick text and render
+        text = pickText();
+        renderSample();
+      });
+
+      resetBtn.addEventListener('click', () => {
+        resetTest();
+      });
+
+      const nextSampleBtn = document.getElementById('nextSampleBtn');
+      const showFullBtn = document.getElementById('showFullBtn');
+      function storageKey(m, l) {
+        return `typing.sampleIndex.${m}.${l}`;
+      }
+
+      function saveSampleIndex() {
+        try {
+          localStorage.setItem(storageKey(mode, level), String(currentSampleIndex));
+        } catch (e) { /* ignore if storage unavailable */ }
+      }
+
+      function loadSampleIndex() {
+        try {
+          const v = localStorage.getItem(storageKey(mode, level));
+          return v ? parseInt(v, 10) : 0;
+        } catch (e) {
+          return 0;
+        }
+      }
+
+      if (nextSampleBtn) {
+        nextSampleBtn.addEventListener('click', () => {
+          nextSample();
+          saveSampleIndex();
+        });
+      }
+
+      if (showFullBtn) {
+        showFullBtn.addEventListener('click', () => {
+          const expanded = sampleBox.classList.toggle('expanded');
+          showFullBtn.textContent = expanded ? 'Show preview' : 'Show full';
+        });
+      }
+
+      input.addEventListener('input', (e) => {
+        const val = e.target.value;
+        totalChars = val.length;
+        // compare each char to text
+        correctChars = 0; wrongChars = 0;
+        for (let i=0;i<val.length;i++) {
+          if (text[i] === val[i]) correctChars++; else wrongChars++;
+        }
+        // highlight words
+        const words = sampleBox.querySelectorAll('.sample-word');
+        const typedWords = val.split(/\s+/);
+        let acc = totalChars ? Math.round((correctChars/totalChars)*100) : 100;
+        // mark words as correct/wrong
+        let index = 0;
+        words.forEach((wSpan, wi) => {
+          const w = wSpan.textContent.trim();
+          const typed = typedWords[wi] || '';
+          wSpan.classList.remove('current','correct','wrong');
+          if (wi === typedWords.length-1) wSpan.classList.add('current');
+          if (typed === w) wSpan.classList.add('correct');
+          else if (typed && typed !== w) wSpan.classList.add('wrong');
+        });
+
+        updateStats();
+      });
+
+      // init: load saved index for initial mode+level and render
+      currentSampleIndex = loadSampleIndex();
+      resetTest();
+
+      // settings dropdown (reuse top settings button)
+      const sBtnTop = document.getElementById('settingsBtnTop');
+      const sDropdownTop = document.getElementById('settingsDropdownTop');
+      if (sBtnTop && sDropdownTop) {
+        sBtnTop.addEventListener('click', (e) => {
+          e.stopPropagation();
+          sDropdownTop.classList.toggle('visible');
+        });
+        
+        sDropdownTop.addEventListener('click', (e) => {
+          e.stopPropagation();
+        });
+        
+        document.addEventListener('click', () => {
+          sDropdownTop.classList.remove('visible');
+        });
+      }
+
+      // close on escape
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+          document.querySelectorAll('.settings-dropdown').forEach(d => d.classList.remove('visible'));
+        }
+      });
+
+      // Basics activities logic
+      const activityUI = document.getElementById('activityUI');
+      const activityDesc = document.getElementById('activityDesc');
+      const backToPracticeBtn = document.getElementById('backToPracticeBtn');
+
+      function clearActivity() {
+        activityUI.innerHTML = '';
+        activityDesc.textContent = 'Choose an activity to begin. These short drills help train proper finger use.';
+      }
+
+      // Home Row Drill: show keys sequence and listen for correct key presses
+      function startHomeRowDrill() {
+        const seq = ['f','j','d','k','s','l','a',';'];
+        let idx = 0;
+        activityDesc.textContent = 'Press the highlighted key using the correct finger. Keep hands on home row.';
+        activityUI.innerHTML = `<div style="font-size:1.6rem; margin-bottom:12px;"><span id=hrKey style=\"padding:8px 12px;border-radius:6px;background:rgba(255,255,255,0.04);\">${seq[0].toUpperCase()}</span></div><div id=hrStatus style=color:var(--secondary)>0 / ${seq.length}</div>`;
+        const hrKey = document.getElementById('hrKey');
+        const hrStatus = document.getElementById('hrStatus');
+
+        function onKey(e) {
+          const k = e.key.toLowerCase();
+          if (k === seq[idx]) {
+            idx++;
+            hrStatus.textContent = `${idx} / ${seq.length}`;
+            if (idx >= seq.length) {
+              activityDesc.textContent = 'Well done — drill complete!';
+              document.removeEventListener('keydown', onKey);
+              return;
+            }
+            hrKey.textContent = seq[idx].toUpperCase();
+          } else {
+            // minor feedback
+            hrKey.style.transition = 'transform 0.08s';
+            hrKey.style.transform = 'translateY(2px)';
+            setTimeout(()=>hrKey.style.transform='',90);
+          }
+        }
+
+        document.addEventListener('keydown', onKey);
+      }
+
+
+
+      // activity buttons
+      document.querySelectorAll('.basics-act').forEach(b=>{
+        b.addEventListener('click', ()=>{
+          const act = b.getAttribute('data-act');
+          if (act === 'home') startHomeRowDrill();
+          if (act === 'warmup') startFingerWarmup();
+          if (act === 'sprint') startSprint();
+        });
+      });
+
+      // Multi-step keyboard visual and interactions
+      let basicsStep = 1;
+
+      const warmupPools = {
+        1: ['dad','sad','add','all','ask','lad','dad','fall','alas','alas'],
+        2: ['type','rate','game','joke','kale','node','code','time','word','play'],
+        3: ['keyboard','practice','computer','speed','accuracy','learning','exercise','finger','station']
+      };
+
+      const masterSprintWords = ['quick','brown','fox','jumps','over','lazy','dog','practice','typing','speed','learn','code','keyboard','skill','focus','accuracy','words','challenge','fast','smooth','rhythm','steady','repeat','muscle','memory','habit','daily','minutes','improve','steady','flow'];
+      // shuffle helper
+      function shuffle(arr) {
+        const a = arr.slice();
+        for (let i = a.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [a[i], a[j]] = [a[j], a[i]];
+        }
+        return a;
+      }
+
+      let sprintPool = shuffle(masterSprintWords);
+
+      const stepButtons = document.querySelectorAll('.step-btn');
+
+      function renderKbdVisual(step = 1) {
+        const k = document.getElementById('kbdVisual');
+        if (!k) return;
+        // simple visual: show rows depending on step
+        const rows = [];
+        const home = [
+          {k:'a',f:'Left Pinky'},{k:'s',f:'Left Ring'},{k:'d',f:'Left Middle'},{k:'f',f:'Left Index'},
+          {k:'j',f:'Right Index'},{k:'k',f:'Right Middle'},{k:'l',f:'Right Ring'},{k:';',f:'Right Pinky'}
+        ];
+        const top = ['q','w','e','r','t','y','u','i','o','p'];
+        const bottom = ['z','x','c','v','b','n','m',',','.','/'];
+        rows.push(home);
+        if (step >= 2) rows.unshift(top.map(ch=>({k:ch,f:'Index/Middle'})));
+        if (step >= 3) rows.push(bottom.map(ch=>({k:ch,f:'Index/Middle'})));
+
+        let html = '<div id="homeKbd" style="display:flex;flex-direction:column;gap:6px;align-items:center;">';
+        rows.forEach(r=>{
+          html += '<div style="display:flex;gap:6px;">';
+          r.forEach(key=>{
+            html += `<div class="kbd-key" data-key="${key.k}" data-finger="${key.f}" style="padding:10px 12px;border-radius:8px;background:rgba(255,255,255,0.02);cursor:pointer;min-width:36px;text-align:center;font-weight:600;">${key.k.toUpperCase()}</div>`;
+          });
+          html += '</div>';
+        });
+        html += '</div>';
+        k.innerHTML = html;
+        bindKbdKeys();
+      }
+
+      function bindKbdKeys() {
+        const homeKbd = document.getElementById('homeKbd');
+        if (!homeKbd) return;
+        homeKbd.querySelectorAll('.kbd-key').forEach(keyEl=>{
+          keyEl.addEventListener('click', ()=>{
+            const finger = keyEl.getAttribute('data-finger');
+            activityDesc.textContent = `${finger} — place the correct finger here and press the ${keyEl.getAttribute('data-key').toUpperCase()} key.`;
+            // highlight corresponding label
+            document.querySelectorAll('.finger-card').forEach(c=>c.style.boxShadow='none');
+            if (finger.includes('Pinky')) document.getElementById('labelPinky').style.boxShadow = '0 8px 24px rgba(0,0,0,0.4)';
+            if (finger.includes('Ring')) document.getElementById('labelRing').style.boxShadow = '0 8px 24px rgba(0,0,0,0.4)';
+            if (finger.includes('Middle')) document.getElementById('labelMiddle').style.boxShadow = '0 8px 24px rgba(0,0,0,0.4)';
+            if (finger.includes('Index')) document.getElementById('labelIndex').style.boxShadow = '0 8px 24px rgba(0,0,0,0.4)';
+            // animate key
+            keyEl.classList.add('active');
+            setTimeout(()=>keyEl.classList.remove('active'), 700);
+          });
+        });
+      }
+
+      // step controls
+      stepButtons.forEach(btn=>{
+        btn.addEventListener('click', ()=>{
+          stepButtons.forEach(b=>b.classList.remove('active'));
+          btn.classList.add('active');
+          basicsStep = parseInt(btn.getAttribute('data-step'),10);
+          activityDesc.textContent = `Step ${basicsStep} selected — practice the keys shown.`;
+          renderKbdVisual(basicsStep);
+        });
+      });
+
+      // adapt warmup to step: single-word progression for step1
+      function startFingerWarmup() {
+        const pool = warmupPools[basicsStep] || warmupPools[1];
+        activityDesc.textContent = 'Type the sequence shown below (use correct fingers). Focus on smooth motion.';
+        if (basicsStep === 1) {
+          // single-word warmup progression
+          const words = shuffle(pool).slice(0,12);
+          let idx = 0;
+          activityUI.innerHTML = `<div id=warmupWord style="font-size:1.4rem;color:var(--primary);margin-bottom:8px">${words[0]}</div><input id=warmupInput class=typing-input placeholder='Type the word' /> <div id=warmupResult style="margin-top:8px;color:rgba(255,255,255,0.8);"></div>`;
+          const warmupInput = document.getElementById('warmupInput');
+          const warmupWord = document.getElementById('warmupWord');
+          const warmupResult = document.getElementById('warmupResult');
+          warmupInput.focus();
+          warmupInput.addEventListener('input', ()=>{
+            if (warmupInput.value.trim() === words[idx]) {
+              idx++;
+              if (idx >= words.length) {
+                warmupResult.textContent = 'Great — warmup complete!';
+                warmupInput.disabled = true;
+                return;
+              }
+              warmupInput.value = '';
+              warmupWord.textContent = words[idx];
+              warmupResult.textContent = `Completed ${idx} / ${words.length}`;
+            } else {
+              warmupResult.textContent = `Progress: ${warmupInput.value.length}/${words[idx].length}`;
+            }
+          });
+        } else {
+          const seq = Array.from({length:20}, ()=>pool[Math.floor(Math.random()*pool.length)]).join(' ');
+          activityUI.innerHTML = `<div style="margin-bottom:10px;color:var(--primary);">${seq}</div><input id=warmupInput class=typing-input placeholder=Type here /> <div id=warmupResult style="margin-top:8px;color:rgba(255,255,255,0.8);"></div>`;
+          const warmupInput = document.getElementById('warmupInput');
+          const warmupResult = document.getElementById('warmupResult');
+          warmupInput.focus();
+          warmupInput.addEventListener('input', ()=>{
+            const typed = warmupInput.value.trim();
+            if (typed === seq) {
+              warmupResult.textContent = 'Perfect!';
+              warmupInput.disabled = true;
+            } else {
+              warmupResult.textContent = `Progress: ${typed.length}/${seq.length}`;
+            }
+          });
+        }
+      }
+
+      // updated sprint to show randomized words (from sprintPool)
+      function startSprint() {
+        activityDesc.textContent = '15 second sprint: type as many characters as you can. Hit Start to begin.';
+        const preview = sprintPool.slice(0,30).join(' ');
+        activityUI.innerHTML = `<div style="margin-bottom:8px;">Preview words:</div><div style="margin-bottom:8px;color:var(--primary);">${preview}</div><div style="margin-bottom:8px;">Time: <span id=sprintTimer>15</span>s</div><button id=sprintStart class="action-button">Start Sprint</button> <div id=sprintArea style="margin-top:8px;"></div>`;
+        const sprintStart = document.getElementById('sprintStart');
+        const sprintTimer = document.getElementById('sprintTimer');
+        const sprintArea = document.getElementById('sprintArea');
+
+        sprintStart.addEventListener('click', ()=>{
+          sprintArea.innerHTML = `<textarea id=sprintInput class=typing-input rows=4 placeholder='${preview}'></textarea>`;
+          const sprintInput = document.getElementById('sprintInput');
+          sprintInput.focus();
+          let t = 15;
+          sprintStart.disabled = true;
+          const si = setInterval(()=>{
+            t--; sprintTimer.textContent = t;
+            if (t <= 0) {
+              clearInterval(si);
+              sprintInput.disabled = true;
+              const chars = sprintInput.value.length;
+              const wpm = Math.round((chars/5) / (15/60));
+              sprintArea.innerHTML = `<div style="color:var(--primary);">Sprint complete — ${chars} chars, approx ${wpm} WPM</div>`;
+              sprintStart.disabled = false;
+            }
+          },1000);
+        });
+      }
+
+      // initial render of keyboard visual
+      renderKbdVisual(basicsStep);
+
+      backToPracticeBtn?.addEventListener('click', ()=>{
+        // switch to timed mode and show practice area
+        document.querySelectorAll('.mode-btn[data-mode]').forEach(b=>b.classList.remove('active'));
+        const timeBtn = document.querySelector('.mode-btn[data-mode="time"]');
+        if (timeBtn) timeBtn.classList.add('active');
+        mode = 'time';
+        const basicsSection = document.getElementById('basicsSection');
+        const practiceArea = document.getElementById('practiceArea');
+        if (basicsSection) basicsSection.style.display = 'none';
+        if (practiceArea) practiceArea.style.display = 'grid';
+        resetTest();
+        clearActivity();
+      });
+
+    })();
+  </script>
+</body>
+</html>

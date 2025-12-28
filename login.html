@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lumina Learning - Innovative Login</title>
+    
+    <!-- Tailwind CSS (via CDN) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Shared Styles -->
+    <link rel="stylesheet" href="styles.css">
+
+    <!-- Custom Tailwind Configuration for Colors/Fonts -->
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            student: '#3B82F6', // Blue for students
+                            instructor: '#F59E0B', // Amber for instructors
+                            dark: '#0F172A',
+                        }
+                    },
+                    animation: {
+                        'float': 'float 6s ease-in-out infinite',
+                        'blob': 'blob 7s infinite',
+                        'fade-in-up': 'fadeInUp 0.5s ease-out forwards',
+                    },
+                    keyframes: {
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0)' },
+                            '50%': { transform: 'translateY(-20px)' },
+                        },
+                        blob: {
+                            '0%': { transform: 'translate(0px, 0px) scale(1)' },
+                            '33%': { transform: 'translate(30px, -50px) scale(1.1)' },
+                            '66%': { transform: 'translate(-20px, 20px) scale(0.9)' },
+                            '100%': { transform: 'translate(0px, 0px) scale(1)' },
+                        },
+                        fadeInUp: {
+                            '0%': { opacity: '0', transform: 'translateY(20px)' },
+                            '100%': { opacity: '1', transform: 'translateY(0)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* Custom Glassmorphism Styles */
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+        }
+        
+        .dark .glass-panel {
+            background: rgba(30, 41, 59, 0.7);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        /* Animated Background Shapes */
+        .shape-blob {
+            position: absolute;
+            filter: blur(40px);
+            z-index: -1;
+            opacity: 0.7;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 dark:bg-slate-900 transition-colors duration-300 font-sans h-screen flex items-center justify-center overflow-hidden selection:bg-brand-student selection:text-white">
+
+    <!-- Theme Toggle (Dark/Light) -->
+    <button id="themeToggle" class="absolute top-5 right-5 p-3 rounded-full bg-white dark:bg-slate-800 shadow-lg hover:scale-110 transition-transform duration-200 z-50">
+        <i class="fas fa-moon text-slate-700 dark:text-yellow-400 text-xl"></i>
+    </button>
+
+    <!-- Animated Background Blobs -->
+    <div class="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
+        <div class="shape-blob bg-purple-300 dark:bg-purple-900 w-72 h-72 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob top-0 -left-4"></div>
+        <div class="shape-blob bg-yellow-300 dark:bg-yellow-900 w-72 h-72 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-2000 bottom-0 -right-4"></div>
+        <div class="shape-blob bg-pink-300 dark:bg-pink-900 w-72 h-72 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-4000 -bottom-8 left-20"></div>
+    </div>
+
+    <!-- Main Container -->
+    <div class="container mx-auto px-4 relative z-10">
+        <div class="max-w-4xl mx-auto flex flex-col md:flex-row shadow-2xl rounded-3xl overflow-hidden glass-panel animate-fade-in-up">
+            
+            <!-- Left Side: Interactive Graphic -->
+            <div id="heroSection" class="md:w-1/2 p-10 flex flex-col justify-center items-center text-center text-white bg-gradient-to-br from-blue-500 to-indigo-600 transition-all duration-500 relative overflow-hidden">
+                <!-- Abstract Floating Icons -->
+                <i class="fas fa-graduation-cap absolute text-white/20 text-9xl -top-10 -left-10 animate-float"></i>
+                <i class="fas fa-book-open absolute text-white/20 text-8xl bottom-10 right-10 animate-float" style="animation-delay: 2s;"></i>
+                
+                <h2 id="welcomeTitle" class="text-4xl font-bold mb-4 z-10">Start Learning</h2>
+                <p id="welcomeText" class="text-blue-100 z-10 mb-8">Unlock your potential with our world-class courses and expert mentors.</p>
+                
+                <!-- Role Switcher Pill -->
+                <div class="bg-white/20 p-1 rounded-full flex relative z-10 backdrop-blur-md">
+                    <button onclick="setRole('student')" id="btnStudent" class="px-6 py-2 rounded-full text-sm font-semibold bg-white text-blue-600 shadow-sm transition-all duration-300">
+                        Student
+                    </button>
+                    <button onclick="setRole('instructor')" id="btnInstructor" class="px-6 py-2 rounded-full text-sm font-semibold text-white hover:bg-white/10 transition-all duration-300">
+                        Instructor
+                    </button>
+                </div>
+            </div>
+
+            <!-- Right Side: Login Form -->
+            <div class="md:w-1/2 p-10 bg-white/50 dark:bg-slate-800/50 flex flex-col justify-center">
+                <div class="text-center mb-8">
+                    <h3 class="text-2xl font-bold text-slate-800 dark:text-white mb-2">Welcome Back!</h3>
+                    <p class="text-slate-500 dark:text-slate-400 text-sm">Please login to access your dashboard.</p>
+                </div>
+
+                <form onsubmit="event.preventDefault(); handleLogin();">
+                    <!-- Email Input -->
+                    <div class="mb-5 relative group">
+                        <i class="fas fa-envelope absolute top-3.5 left-4 text-slate-400 group-focus-within:text-brand-student transition-colors duration-300 icon-dynamic"></i>
+                        <input type="email" required placeholder="Email Address" 
+                            class="w-full pl-12 pr-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 focus:outline-none focus:ring-2 focus:ring-brand-student focus:border-transparent transition-all duration-300 text-slate-800 dark:text-white placeholder-slate-400"
+                            id="inputEmail">
+                    </div>
+
+                    <!-- Password Input -->
+                    <div class="mb-6 relative group">
+                        <i class="fas fa-lock absolute top-3.5 left-4 text-slate-400 group-focus-within:text-brand-student transition-colors duration-300 icon-dynamic"></i>
+                        <input type="password" required placeholder="Password" 
+                            class="w-full pl-12 pr-12 py-3 rounded-xl bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 focus:outline-none focus:ring-2 focus:ring-brand-student focus:border-transparent transition-all duration-300 text-slate-800 dark:text-white placeholder-slate-400"
+                            id="inputPassword">
+                        <button type="button" class="absolute top-3.5 right-4 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </div>
+
+                    <div class="flex justify-between items-center mb-8">
+                        <label class="flex items-center text-slate-500 dark:text-slate-400 text-sm cursor-pointer">
+                            <input type="checkbox" class="mr-2 rounded text-brand-student focus:ring-brand-student">
+                            Remember me
+                        </label>
+                        <a href="#" class="text-sm font-semibold text-brand-student hover:underline link-dynamic">Forgot Password?</a>
+                    </div>
+
+                    <!-- Submit Button -->
+                    <button type="submit" id="submitBtn" class="w-full py-3.5 rounded-xl bg-brand-student text-white font-bold shadow-lg shadow-blue-500/30 hover:shadow-blue-500/50 hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 flex justify-center items-center gap-2 group">
+                        <span>Sign In</span>
+                        <i class="fas fa-arrow-right transform group-hover:translate-x-1 transition-transform"></i>
+                    </button>
+                </form>
+
+                <!-- Social Login -->
+                <div class="mt-8">
+                    <div class="relative flex py-2 items-center">
+                        <div class="flex-grow border-t border-slate-200 dark:border-slate-600"></div>
+                        <span class="flex-shrink-0 mx-4 text-slate-400 text-xs uppercase">Or continue with</span>
+                        <div class="flex-grow border-t border-slate-200 dark:border-slate-600"></div>
+                    </div>
+                    
+                    <div class="flex gap-4 mt-4 justify-center">
+                        <button class="p-3 rounded-full bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-600 transition-colors">
+                            <img src="https://www.svgrepo.com/show/475656/google-color.svg" class="w-6 h-6" alt="Google">
+                        </button>
+                        <button class="p-3 rounded-full bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-600 transition-colors">
+                            <img src="https://www.svgrepo.com/show/475647/facebook-color.svg" class="w-6 h-6" alt="Facebook">
+                        </button>
+                    </div>
+                </div>
+
+                <p class="mt-8 text-center text-slate-500 dark:text-slate-400 text-sm">
+                    Don't have an account? <a href="#" class="font-bold text-brand-student hover:underline link-dynamic">Create Account</a>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Success Popup Modal -->
+    <div id="successPopup" class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[100] hidden">
+        <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl p-8 max-w-sm w-full mx-4 animate-fade-in-up">
+            <!-- Checkmark Animation -->
+            <div class="flex justify-center mb-6">
+                <div class="relative">
+                    <div class="w-20 h-20 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
+                        <i class="fas fa-check text-green-500 text-4xl animate-bounce" style="animation-delay: 0.2s;"></i>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Success Message -->
+            <h3 class="text-2xl font-bold text-center text-slate-800 dark:text-white mb-2">Login Successful!</h3>
+            <p class="text-center text-slate-600 dark:text-slate-400 mb-6">Welcome back! Redirecting to your dashboard...</p>
+            
+            <!-- Loading Progress -->
+            <div class="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-2 overflow-hidden mb-4">
+                <div class="bg-green-500 h-full rounded-full animate-pulse" style="width: 100%; animation: progress 2s ease-in forwards;"></div>
+            </div>
+            
+            <!-- Redirect Button (if user wants to skip) -->
+            <button onclick="redirectToDashboard()" class="w-full py-2.5 rounded-lg bg-green-500 text-white font-semibold hover:bg-green-600 transition-colors">
+                Go to Dashboard
+            </button>
+        </div>
+    </div>
+
+    <!-- Green Page Overlay (showing while redirecting) -->
+    <div id="greenOverlay" class="fixed inset-0 bg-green-500 z-[200] hidden flex items-center justify-center pointer-events-none transition-opacity duration-500">
+        <div class="text-center text-white">
+            <i class="fas fa-check-circle text-6xl mb-4 block animate-bounce"></i>
+            <p class="text-xl font-semibold">Login Successful!</p>
+        </div>
+    </div>
+
+    <!-- JavaScript for Interactivity -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="script.js"></script>
+    <script>
+        // Page-specific code (login.html only)
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes progress {
+                0% { width: 0%; }
+                100% { width: 100%; }
+            }
+        `;
+        document.head.appendChild(style);
+
+        const heroSection = document.getElementById('heroSection');
+        const welcomeTitle = document.getElementById('welcomeTitle');
+        const welcomeText = document.getElementById('welcomeText');
+        const submitBtn = document.getElementById('submitBtn');
+        const themeToggle = document.getElementById('themeToggle');
+        const html = document.documentElement;
+        
+        // Dynamic Elements to colorize
+        const dynamicIcons = document.querySelectorAll('.icon-dynamic');
+        const dynamicLinks = document.querySelectorAll('.link-dynamic');
+        const inputs = document.querySelectorAll('input');
+
+        // Role Data
+        const roles = {
+            student: {
+                title: 'Start Learning',
+                text: 'Unlock your potential with our world-class courses and expert mentors.',
+                gradient: 'from-blue-500 to-indigo-600',
+                btnColor: 'bg-blue-600',
+                accentColor: 'text-blue-600',
+                ringColor: 'focus:ring-blue-500',
+                shadow: 'shadow-blue-500/30'
+            },
+            instructor: {
+                title: 'Inspire Others',
+                text: 'Share your knowledge, build your brand, and change lives globally.',
+                gradient: 'from-amber-500 to-orange-600',
+                btnColor: 'bg-amber-600',
+                accentColor: 'text-amber-600',
+                ringColor: 'focus:ring-amber-500',
+                shadow: 'shadow-amber-500/30'
+            }
+        };
+
+        // Current Role State
+        let currentRole = 'student';
+
+        function setRole(role) {
+            currentRole = role;
+            const data = roles[role];
+            
+            // 1. Update Hero Section Visuals
+            heroSection.className = `md:w-1/2 p-10 flex flex-col justify-center items-center text-center text-white bg-gradient-to-br ${data.gradient} transition-all duration-500 relative overflow-hidden`;
+            
+            // 2. Animate Text Change
+            welcomeTitle.style.opacity = 0;
+            welcomeText.style.opacity = 0;
+            
+            setTimeout(() => {
+                welcomeTitle.innerText = data.title;
+                welcomeText.innerText = data.text;
+                welcomeTitle.style.opacity = 1;
+                welcomeText.style.opacity = 1;
+            }, 200);
+
+            // 3. Update Button Styling
+            document.getElementById('btnStudent').className = role === 'student' 
+                ? `px-6 py-2 rounded-full text-sm font-semibold bg-white text-blue-600 shadow-sm transition-all duration-300`
+                : `px-6 py-2 rounded-full text-sm font-semibold text-white hover:bg-white/10 transition-all duration-300`;
+            
+            document.getElementById('btnInstructor').className = role === 'instructor'
+                ? `px-6 py-2 rounded-full text-sm font-semibold bg-white text-orange-600 shadow-sm transition-all duration-300`
+                : `px-6 py-2 rounded-full text-sm font-semibold text-white hover:bg-white/10 transition-all duration-300`;
+
+            // 4. Update Form Accent Colors
+            submitBtn.className = `w-full py-3.5 rounded-xl text-white font-bold shadow-lg ${data.shadow} hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 flex justify-center items-center gap-2 group ${data.btnColor}`;
+
+            // Update Focus Rings on inputs
+            inputs.forEach(input => {
+                input.className = input.className.replace(/focus:ring-\w+-\d+/g, data.ringColor);
+            });
+
+            // Update Icons and Links colors
+            dynamicIcons.forEach(icon => {
+                icon.className = icon.className.replace(/group-focus-within:text-\w+-\w+/g, `group-focus-within:${data.accentColor}`);
+            });
+            
+            dynamicLinks.forEach(link => {
+                link.className = link.className.replace(/text-\w+-\w+/g, data.accentColor);
+            });
+        }
+
+        // Theme Toggle Logic
+        themeToggle.addEventListener('click', () => {
+            if (html.classList.contains('dark')) {
+                html.classList.remove('dark');
+                themeToggle.innerHTML = '<i class="fas fa-moon text-slate-700 text-xl"></i>';
+            } else {
+                html.classList.add('dark');
+                themeToggle.innerHTML = '<i class="fas fa-sun text-yellow-400 text-xl"></i>';
+            }
+        });
+
+        // Initialize
+        setRole('student');
+
+        // Login Handler Function
+        function handleLogin() {
+            const email = document.getElementById('inputEmail').value;
+            const password = document.getElementById('inputPassword').value;
+            
+            // Validate inputs
+            if (!email || !password) {
+                alert('Please fill in all fields');
+                return;
+            }
+
+            // Show success popup
+            const successPopup = document.getElementById('successPopup');
+            successPopup.classList.remove('hidden');
+
+            // Auto redirect after 3 seconds
+            setTimeout(() => {
+                redirectToDashboard();
+            }, 3000);
+        }
+
+        // Redirect to Dashboard
+        function redirectToDashboard() {
+            const successPopup = document.getElementById('successPopup');
+            const greenOverlay = document.getElementById('greenOverlay');
+            
+            // Hide popup and show green overlay
+            successPopup.classList.add('hidden');
+            greenOverlay.classList.remove('hidden');
+            
+            // Redirect after green overlay animation (1 second)
+            setTimeout(() => {
+                // Change this URL to your desired dashboard page
+                window.location.href = 'demo.html';
+            }, 1000);
+        }
+    </script>
+</body>
+</html>

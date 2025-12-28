@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - KodeCluster</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .dashboard-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+            z-index: 10;
+            position: relative;
+        }
+
+        .dashboard-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 40px;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .header-title h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 5px;
+        }
+
+        .header-title p {
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 0.95rem;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 12px 20px;
+            background: var(--glass);
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        /* Settings dropdown */
+        .settings-button {
+            background: transparent;
+            border: none;
+            color: rgba(255,255,255,0.8);
+            cursor: pointer;
+            padding: 6px;
+            border-radius: 8px;
+        }
+
+        .settings-button:hover { background: rgba(255,255,255,0.02); }
+
+        .settings-dropdown {
+            position: absolute;
+            right: 0;
+            top: 100%;
+            margin-top: 8px;
+            min-width: 180px;
+            background: rgba(20,20,30,0.95);
+            border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 10px;
+            box-shadow: 0 12px 30px rgba(0,0,0,0.5);
+            padding: 8px 0;
+            z-index: 50;
+            display: none;
+        }
+
+        .settings-dropdown.visible { display: block; }
+
+        .settings-item {
+            padding: 10px 14px;
+            color: rgba(255,255,255,0.9);
+            font-size: 0.95rem;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            cursor: pointer;
+        }
+
+        .settings-item:hover { background: rgba(255,255,255,0.02); }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #000;
+            font-weight: bold;
+        }
+
+        .user-details p {
+            margin: 0;
+            font-size: 0.9rem;
+        }
+
+        .user-details .user-name {
+            color: white;
+            font-weight: 600;
+        }
+
+        .user-details .user-role {
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 0.85rem;
+        }
+
+        /* Dashboard Grid */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+            margin-bottom: 40px;
+        }
+
+        .card {
+            padding: 25px;
+            border-radius: 16px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            border-color: rgba(255, 255, 255, 0.2);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .card.glass {
+            background: var(--glass);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .card-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+        }
+
+        .card-icon.primary {
+            background: rgba(0, 255, 136, 0.1);
+            color: var(--primary);
+        }
+
+        .card-icon.secondary {
+            background: rgba(0, 204, 255, 0.1);
+            color: var(--secondary);
+        }
+
+        .card-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: white;
+            margin-bottom: 8px;
+        }
+
+        .card-value {
+            font-size: 2rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 10px;
+        }
+
+        .card-description {
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+            margin-top: 15px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            border-radius: 3px;
+            animation: progress 2s ease-out;
+        }
+
+        /* Stats Section */
+        .stats-section {
+            background: var(--glass);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 30px;
+            margin-bottom: 40px;
+        }
+
+        .stats-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin-bottom: 25px;
+            color: white;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+        }
+
+        .stat-item {
+            text-align: center;
+            padding: 15px;
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 0.9rem;
+        }
+
+        /* Action Button */
+        .action-button {
+            padding: 12px 24px;
+            border: 2px solid var(--primary);
+            background: transparent;
+            color: var(--primary);
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+        }
+
+        .action-button:hover {
+            background: var(--primary);
+            color: #000;
+            box-shadow: 0 0 20px rgba(0, 255, 136, 0.4);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .dashboard-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .header-title h1 {
+                font-size: 1.8rem;
+            }
+
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Canvas Background -->
+    <canvas id="constellation"></canvas>
+
+    <!-- Theme Orb -->
+    <div id="themeOrb" onclick="changeTheme()" title="Change Atmosphere"></div>
+
+    <!-- Dashboard Container -->
+    <div class="dashboard-container">
+        <!-- Header -->
+        <div class="dashboard-header">
+            <div class="header-title">
+                <h1>Welcome to Nexus</h1>
+                <p>Your learning dashboard for skill advancement</p>
+            </div>
+            <div class="user-info" style="position: relative;">
+                <div class="user-avatar">👤</div>
+                <div class="user-details">
+                    <p class="user-name">Alex Johnson</p>
+                    <p class="user-role">Student • <span style="color:rgba(255,255,255,0.7); font-weight:500;">alex.j@kodecluster.com</span></p>
+                </div>
+
+                <!-- Settings button + dropdown -->
+                <div style="margin-left:12px; position: relative;">
+                    <button id="settingsBtn" class="settings-button" aria-expanded="false" title="Settings">
+                        <i class="fas fa-gear"></i>
+                    </button>
+                    <div id="settingsDropdown" class="settings-dropdown" role="menu" aria-hidden="true">
+                        <div class="settings-item" onclick="location.href='#change-password'">
+                            <i class="fas fa-key" style="color:var(--primary);"></i>
+                            Change password
+                        </div>
+                        <div class="settings-item" onclick="location.href='typing.html'">
+                            <i class="fas fa-keyboard" style="color:var(--primary);"></i>
+                            Typing practice
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Stats Cards -->
+        <div class="dashboard-grid">
+            <!-- Card 1: Courses -->
+            <div class="card glass">
+                <div class="card-header">
+                    <div>
+                        <div class="card-title">Active Courses</div>
+                        <div class="card-value">8</div>
+                    </div>
+                    <div class="card-icon primary">
+                        <i class="fas fa-book"></i>
+                    </div>
+                </div>
+                <div class="card-description">
+                    <i class="fas fa-check-circle" style="color: var(--primary);"></i>
+                    4 in progress
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: 65%;"></div>
+                </div>
+            </div>
+
+            <!-- Card 2: Labs -->
+            <div class="card glass">
+                <div class="card-header">
+                    <div>
+                        <div class="card-title">Labs</div>
+                        <div class="card-value">12</div>
+                    </div>
+                    <div class="card-icon secondary">
+                        <i class="fas fa-flask"></i>
+                    </div>
+                </div>
+                <div class="card-description">
+                    <i class="fas fa-play-circle" style="color: var(--primary);"></i>
+                    3 in progress
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: 60%;"></div>
+                </div>
+            </div>
+
+            <!-- Card 3: Tests & Reports -->
+            <div class="card glass">
+                <div class="card-header">
+                    <div>
+                        <div class="card-title">Tests &amp; Reports</div>
+                        <div class="card-value">17</div>
+                    </div>
+                    <div class="card-icon primary">
+                        <i class="fas fa-file-alt"></i>
+                    </div>
+                </div>
+                <div class="card-description">
+                    <i class="fas fa-exclamation-circle" style="color: var(--primary);"></i>
+                    5 pending reviews
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: 70%;"></div>
+                </div>
+            </div>
+
+            <!-- Card 4: Skill Level -->
+            <div class="card glass">
+                <div class="card-header">
+                    <div>
+                        <div class="card-title">Skill Level</div>
+                        <div class="card-value">78%</div>
+                    </div>
+                    <div class="card-icon secondary">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                </div>
+                <div class="card-description">
+                    <i class="fas fa-zap" style="color: var(--primary);"></i>
+                    Advanced tier reached
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: 78%;"></div>
+                </div>
+            </div>
+
+            <!-- Card 5: Mentor Messages (assistant suggestion) -->
+           
+        </div>
+
+        <!-- Stats Section -->
+        <div class="stats-section">
+            <h2 class="stats-title">Weekly Performance</h2>
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <div class="stat-number">15</div>
+                    <div class="stat-label">Lessons Completed</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">9</div>
+                    <div class="stat-label">Labs Completed</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">87%</div>
+                    <div class="stat-label">Average Score</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">5</div>
+                    <div class="stat-label">Days Streak</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">42</div>
+                    <div class="stat-label">Points Earned</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Action Section -->
+        <div style="display: flex; gap: 15px; margin-bottom: 40px; flex-wrap: wrap;">
+            <button class="action-button">
+                <i class="fas fa-play-circle"></i> Continue Learning
+            </button>
+
+            <button class="action-button" onclick="location.href='typing.html'" style="border-color: var(--primary); color: var(--primary);">
+                <i class="fas fa-keyboard"></i> Typing Practice
+            </button>
+            <button class="action-button" style="border-color: var(--secondary); color: var(--secondary);">
+                <i class="fas fa-bell"></i> View Notifications
+            </button>
+            <button class="action-button" style="border-color: rgba(255, 255, 255, 0.3); color: rgba(255, 255, 255, 0.6);">
+                <i class="fas fa-sign-out-alt"></i> Logout
+            </button>
+        </div>
+    </div>
+
+    <!-- Include Common Scripts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
+
